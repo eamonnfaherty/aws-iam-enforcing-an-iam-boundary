@@ -1,0 +1,325 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Initial setup for aws-iam-enforcing an IAM boundary
+
+Resources:
+  ApprovedIAMActionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: ApprovedIAMActionsPolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+              - iam:AddClientIDToOpenIDConnectProvider
+              - iam:AddRoleToInstanceProfile
+              - iam:AddUserToGroup
+              - iam:AttachGroupPolicy
+              - iam:AttachRolePolicy
+              - iam:AttachUserPolicy
+              - iam:ChangePassword
+              - iam:CreateAccessKey
+              - iam:CreateAccountAlias
+              - iam:CreateGroup
+              - iam:CreateInstanceProfile
+              - iam:CreateLoginProfile
+              - iam:CreateOpenIDConnectProvider
+              - iam:CreatePolicy
+              - iam:CreatePolicyVersion
+              - iam:CreateRole
+              - iam:CreateSAMLProvider
+              - iam:CreateServiceLinkedRole
+              - iam:CreateServiceSpecificCredential
+              - iam:CreateUser
+              - iam:CreateVirtualMFADevice
+              - iam:DeactivateMFADevice
+              - iam:DeleteAccessKey
+              - iam:DeleteAccountAlias
+              - iam:DeleteAccountPasswordPolicy
+              - iam:DeleteGroup
+              - iam:DeleteGroupPolicy
+              - iam:DeleteInstanceProfile
+              - iam:DeleteLoginProfile
+              - iam:DeleteOpenIDConnectProvider
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+              - iam:DeleteRole
+              - iam:DeleteRolePermissionsBoundary
+              - iam:DeleteRolePolicy
+              - iam:DeleteSAMLProvider
+              - iam:DeleteSSHPublicKey
+              - iam:DeleteServerCertificate
+              - iam:DeleteServiceLinkedRole
+              - iam:DeleteServiceSpecificCredential
+              - iam:DeleteSigningCertificate
+              - iam:DeleteUser
+              - iam:DeleteUserPermissionsBoundary
+              - iam:DeleteUserPolicy
+              - iam:DeleteVirtualMFADevice
+              - iam:DetachGroupPolicy
+              - iam:DetachRolePolicy
+              - iam:DetachUserPolicy
+              - iam:EnableMFADevice
+              - iam:GenerateCredentialReport
+              - iam:GenerateServiceLastAccessedDetails
+              - iam:GetAccessKeyLastUsed
+              - iam:GetAccountAuthorizationDetails
+              - iam:GetAccountPasswordPolicy
+              - iam:GetAccountSummary
+              - iam:GetContextKeysForCustomPolicy
+              - iam:GetContextKeysForPrincipalPolicy
+              - iam:GetCredentialReport
+              - iam:GetGroup
+              - iam:GetGroupPolicy
+              - iam:GetInstanceProfile
+              - iam:GetLoginProfile
+              - iam:GetOpenIDConnectProvider
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:GetSAMLProvider
+              - iam:GetSSHPublicKey
+              - iam:GetServerCertificate
+              - iam:GetServiceLastAccessedDetails
+              - iam:GetServiceLastAccessedDetailsWithEntities
+              - iam:GetServiceLinkedRoleDeletionStatus
+              - iam:GetUser
+              - iam:GetUserPolicy
+              - iam:ListAccessKeys
+              - iam:ListAccountAliases
+              - iam:ListAttachedGroupPolicies
+              - iam:ListAttachedRolePolicies
+              - iam:ListAttachedUserPolicies
+              - iam:ListEntitiesForPolicy
+              - iam:ListGroupPolicies
+              - iam:ListGroups
+              - iam:ListGroupsForUser
+              - iam:ListInstanceProfiles
+              - iam:ListInstanceProfilesForRole
+              - iam:ListMFADevices
+              - iam:ListOpenIDConnectProviders
+              - iam:ListPolicies
+              - iam:ListPoliciesGrantingServiceAccess
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoleTags
+              - iam:ListRoles
+              - iam:ListSAMLProviders
+              - iam:ListSSHPublicKeys
+              - iam:ListServerCertificates
+              - iam:ListServiceSpecificCredentials
+              - iam:ListSigningCertificates
+              - iam:ListUserPolicies
+              - iam:ListUserTags
+              - iam:ListUsers
+              - iam:ListVirtualMFADevices
+              - iam:PassRole
+              - iam:PutGroupPolicy
+              - iam:PutRolePermissionsBoundary
+              - iam:PutRolePolicy
+              - iam:PutUserPermissionsBoundary
+              - iam:PutUserPolicy
+              - iam:RemoveClientIDFromOpenIDConnectProvider
+              - iam:RemoveRoleFromInstanceProfile
+              - iam:RemoveUserFromGroup
+              - iam:ResetServiceSpecificCredential
+              - iam:ResyncMFADevice
+              - iam:SetDefaultPolicyVersion
+              - iam:SimulateCustomPolicy
+              - iam:SimulatePrincipalPolicy
+              - iam:TagRole
+              - iam:TagUser
+              - iam:UntagRole
+              - iam:UntagUser
+              - iam:UpdateAccessKey
+              - iam:UpdateAccountPasswordPolicy
+              - iam:UpdateAssumeRolePolicy
+              - iam:UpdateGroup
+              - iam:UpdateLoginProfile
+              - iam:UpdateOpenIDConnectProviderThumbprint
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+              - iam:UpdateSAMLProvider
+              - iam:UpdateSSHPublicKey
+              - iam:UpdateServerCertificate
+              - iam:UpdateServiceSpecificCredential
+              - iam:UpdateSigningCertificate
+              - iam:UpdateUser
+              - iam:UploadSSHPublicKey
+              - iam:UploadServerCertificate
+              - iam:UploadSigningCertificate
+
+  BindingUserPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: CreateOrChangeOnlyWithBoundary
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: "BoundActions"
+            Effect: Allow
+            Resource: '*'
+            Action:
+              - iam:CreateUser
+              - iam:DeleteUserPolicy
+              - iam:AttachUserPolicy
+              - iam:DetachUserPolicy
+              - iam:PutUserPermissionsBoundary
+            Condition:
+              StringEquals:
+                iam:PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/ApprovedIAMActionsPolicy"
+          - Sid: "OtherActions"
+            Effect: Allow
+            Resource: '*'
+            Action:
+              - iam:AddClientIDToOpenIDConnectProvider
+              - iam:AddRoleToInstanceProfile
+              - iam:AddUserToGroup
+              - iam:AttachGroupPolicy
+              - iam:AttachRolePolicy
+              - iam:ChangePassword
+              - iam:CreateAccessKey
+              - iam:CreateAccountAlias
+              - iam:CreateGroup
+              - iam:CreateInstanceProfile
+              - iam:CreateLoginProfile
+              - iam:CreateOpenIDConnectProvider
+              - iam:CreatePolicy
+              - iam:CreatePolicyVersion
+              - iam:CreateRole
+              - iam:CreateSAMLProvider
+              - iam:CreateServiceLinkedRole
+              - iam:CreateServiceSpecificCredential
+              - iam:CreateVirtualMFADevice
+              - iam:DeactivateMFADevice
+              - iam:DeleteAccessKey
+              - iam:DeleteAccountAlias
+              - iam:DeleteAccountPasswordPolicy
+              - iam:DeleteGroup
+              - iam:DeleteGroupPolicy
+              - iam:DeleteInstanceProfile
+              - iam:DeleteLoginProfile
+              - iam:DeleteOpenIDConnectProvider
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+              - iam:DeleteRole
+              - iam:DeleteRolePermissionsBoundary
+              - iam:DeleteRolePolicy
+              - iam:DeleteSAMLProvider
+              - iam:DeleteSSHPublicKey
+              - iam:DeleteServerCertificate
+              - iam:DeleteServiceLinkedRole
+              - iam:DeleteServiceSpecificCredential
+              - iam:DeleteSigningCertificate
+              - iam:DeleteUser
+              - iam:DeleteUserPermissionsBoundary
+              - iam:DeleteVirtualMFADevice
+              - iam:DetachGroupPolicy
+              - iam:DetachRolePolicy
+              - iam:EnableMFADevice
+              - iam:GenerateCredentialReport
+              - iam:GenerateServiceLastAccessedDetails
+              - iam:GetAccessKeyLastUsed
+              - iam:GetAccountAuthorizationDetails
+              - iam:GetAccountPasswordPolicy
+              - iam:GetAccountSummary
+              - iam:GetContextKeysForCustomPolicy
+              - iam:GetContextKeysForPrincipalPolicy
+              - iam:GetCredentialReport
+              - iam:GetGroup
+              - iam:GetGroupPolicy
+              - iam:GetInstanceProfile
+              - iam:GetLoginProfile
+              - iam:GetOpenIDConnectProvider
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:GetSAMLProvider
+              - iam:GetSSHPublicKey
+              - iam:GetServerCertificate
+              - iam:GetServiceLastAccessedDetails
+              - iam:GetServiceLastAccessedDetailsWithEntities
+              - iam:GetServiceLinkedRoleDeletionStatus
+              - iam:GetUser
+              - iam:GetUserPolicy
+              - iam:ListAccessKeys
+              - iam:ListAccountAliases
+              - iam:ListAttachedGroupPolicies
+              - iam:ListAttachedRolePolicies
+              - iam:ListAttachedUserPolicies
+              - iam:ListEntitiesForPolicy
+              - iam:ListGroupPolicies
+              - iam:ListGroups
+              - iam:ListGroupsForUser
+              - iam:ListInstanceProfiles
+              - iam:ListInstanceProfilesForRole
+              - iam:ListMFADevices
+              - iam:ListOpenIDConnectProviders
+              - iam:ListPolicies
+              - iam:ListPoliciesGrantingServiceAccess
+              - iam:ListPolicyVersions
+              - iam:ListRolePolicies
+              - iam:ListRoleTags
+              - iam:ListRoles
+              - iam:ListSAMLProviders
+              - iam:ListSSHPublicKeys
+              - iam:ListServerCertificates
+              - iam:ListServiceSpecificCredentials
+              - iam:ListSigningCertificates
+              - iam:ListUserPolicies
+              - iam:ListUserTags
+              - iam:ListUsers
+              - iam:ListVirtualMFADevices
+              - iam:PassRole
+              - iam:PutGroupPolicy
+              - iam:PutRolePermissionsBoundary
+              - iam:PutRolePolicy
+              - iam:PutUserPolicy
+              - iam:RemoveClientIDFromOpenIDConnectProvider
+              - iam:RemoveRoleFromInstanceProfile
+              - iam:RemoveUserFromGroup
+              - iam:ResetServiceSpecificCredential
+              - iam:ResyncMFADevice
+              - iam:SetDefaultPolicyVersion
+              - iam:SimulateCustomPolicy
+              - iam:SimulatePrincipalPolicy
+              - iam:TagRole
+              - iam:TagUser
+              - iam:UntagRole
+              - iam:UntagUser
+              - iam:UpdateAccessKey
+              - iam:UpdateAccountPasswordPolicy
+              - iam:UpdateAssumeRolePolicy
+              - iam:UpdateGroup
+              - iam:UpdateLoginProfile
+              - iam:UpdateOpenIDConnectProviderThumbprint
+              - iam:UpdateRole
+              - iam:UpdateRoleDescription
+              - iam:UpdateSAMLProvider
+              - iam:UpdateSSHPublicKey
+              - iam:UpdateServerCertificate
+              - iam:UpdateServiceSpecificCredential
+              - iam:UpdateSigningCertificate
+              - iam:UpdateUser
+              - iam:UploadSSHPublicKey
+              - iam:UploadServerCertificate
+              - iam:UploadSigningCertificate
+
+  RoleWithBoundary:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: RoleWithBoundary
+      PermissionsBoundary: !Ref BindingUserPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref ApprovedIAMActionsPolicy
